@@ -44,7 +44,7 @@ export function SalesPage() {
   }
 
   const handleSale = async () => {
-    if (cart.length === 0) return
+    if (cart.length === 0 || cart.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1)) return
 
     try {
       await createSale(cart.map(({ productId, quantity }) => ({ productId, quantity })))

@@ -23,6 +23,22 @@ export type AuthTokenResponse = {
   token: string
 }
 
+export type UserRole = 'ADMIN' | 'DUENO' | 'VENDEDOR'
+
+export type MenuPermission = {
+  permissionId: string
+  code: string
+  name: string
+}
+
+export type MenuScreen = {
+  screenId: string
+  code: string
+  name: string
+  route: string
+  permissions: MenuPermission[]
+}
+
 export type RegisterResponse = {
   companyId: string
   userId: string
@@ -51,4 +67,16 @@ export type ProductForm = {
   price: string
   stock: string
   minimumStock: string
+}
+
+export type Role = { id: string; code: string; name: string }
+export type Screen = { id: string; code: string; name: string; route: string }
+export type Permission = { id: string; code: string; name: string; screenId: string }
+export type User = {
+  id: string
+  tenantId: string
+  email: string
+  roleId: string | null
+  roleCode: string | null
+  active: boolean
 }

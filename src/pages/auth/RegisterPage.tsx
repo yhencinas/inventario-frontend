@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
+import { validateRegistrationForm } from '../../lib/validation'
 
 export function RegisterPage() {
   const navigate = useNavigate()
@@ -13,9 +14,13 @@ export function RegisterPage() {
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    const nextErrors = validateRegistrationForm(companyName, email, password)
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length) return
 
     try {
       await register(companyName, email, password)
@@ -41,9 +46,10 @@ export function RegisterPage() {
               type="text"
               value={companyName}
               onChange={(event) => setCompanyName(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none transition focus:ring-2 ${errors.companyName ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
               required
             />
+            {errors.companyName ? <p className="mt-1 text-sm text-red-600">{errors.companyName}</p> : null}
           </div>
 
           <div>
@@ -52,9 +58,10 @@ export function RegisterPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none transition focus:ring-2 ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
               required
             />
+            {errors.email ? <p className="mt-1 text-sm text-red-600">{errors.email}</p> : null}
           </div>
 
           <div>
@@ -63,10 +70,11 @@ export function RegisterPage() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+              className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none transition focus:ring-2 ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
               minLength={6}
               required
             />
+            {errors.password ? <p className="mt-1 text-sm text-red-600">{errors.password}</p> : null}
           </div>
 
           {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div> : null}

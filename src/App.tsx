@@ -8,6 +8,8 @@ import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { ProductsPage } from './pages/products/ProductsPage'
 import { ReportsPage } from './pages/reports/ReportsPage'
 import { SalesPage } from './pages/sales/SalesPage'
+import { AdminPage } from './pages/admin/AdminPage'
+import { ScreenRoute } from './components/ScreenRoute'
 
 function App() {
   return (
@@ -20,10 +22,11 @@ function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/sales" element={<SalesPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
+            <Route element={<ScreenRoute route="/" />}><Route path="/" element={<DashboardPage />} /></Route>
+            <Route element={<ScreenRoute route="/products" />}><Route path="/products" element={<ProductsPage />} /></Route>
+            <Route element={<ScreenRoute route="/sales" />}><Route path="/sales" element={<SalesPage />} /></Route>
+            <Route element={<ScreenRoute route="/reports" />}><Route path="/reports" element={<ReportsPage />} /></Route>
+            <Route element={<ScreenRoute route="/admin" />}><Route path="/admin" element={<AdminPage />} /></Route>
           </Route>
         </Route>
 

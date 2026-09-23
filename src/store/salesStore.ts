@@ -6,14 +6,19 @@ type SalesState = {
   sales: Sale[]
   loading: boolean
   error: string | null
+  page: number
+  size: number
+  totalPage: number
+  totalRecord: number
   createSale: (items: { productId: string; quantity: number }[]) => Promise<Sale>
-  getSalesReport: (from: string, to: string) => Promise<void>
+  getSalesReport: (from: string, to: string, page?: number, size?: number) => Promise<void>
 }
 
 export const useSalesStore = create<SalesState>((set) => ({
   sales: [],
   loading: false,
   error: null,
+  page: 0, size: 20, totalPage: 0, totalRecord: 0,
   createSale: async (items) => {
     set({ loading: true, error: null })
 
@@ -29,7 +34,7 @@ export const useSalesStore = create<SalesState>((set) => ({
       throw error
     }
   },
-  getSalesReport: async (from, to) => {
+  getSalesReport: async (from, to, page = 0, size = 20) => {
     set({ loading: true, error: null })
 
     try {
@@ -37,12 +42,12 @@ export const useSalesStore = create<SalesState>((set) => ({
         params: {
           from,
           to,
-          page: 0,
-          size: 50,
+          page,
+          size,
         },
       })
 
-      set({ sales: data.list, loading: false })
+      set({ sales: data.list, page: data.page, size: data.size, totalPage: data.totalPage, totalRecord: data.totalRecord, loading: false })
     } catch (error: any) {
       set({
         error: error.response?.data?.message ?? 'No se pudo obtener el reporte',

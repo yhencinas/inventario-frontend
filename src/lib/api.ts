@@ -14,6 +14,21 @@ const getErrorMessage = (payload: unknown, fallback: string) => {
   return fallback
 }
 
+const shouldShowToast = (method?: string, url?: string) => {
+  const normalizedMethod = method?.toLowerCase() ?? ''
+  const normalizedUrl = url?.toLowerCase() ?? ''
+
+  if (!normalizedMethod || normalizedMethod === 'get' || normalizedMethod === 'options') {
+    return false
+  }
+
+  if (normalizedUrl.includes('/auth/login')) {
+    return false
+  }
+
+  return true
+}
+
 export const api = axios.create({
   baseURL: `${API_URL}/api/v1`,
   headers: {
@@ -38,8 +53,9 @@ api.interceptors.response.use(
     useUiStore.getState().stopLoading()
 
     const customConfig = response.config as { showToast?: boolean } | undefined
+    const shouldNotify = customConfig?.showToast !== false && shouldShowToast(response.config.method, response.config.url)
 
-    if (customConfig?.showToast !== false) {
+    if (shouldNotify) {
       const message = getErrorMessage(response.data, 'Operación realizada correctamente')
 
       if (response.data && typeof response.data === 'object' && 'message' in response.data) {
@@ -54,12 +70,16 @@ api.interceptors.response.use(
   (error) => {
     useUiStore.getState().stopLoading()
 
-    const message = getErrorMessage(
-      error.response?.data,
-      'Ocurrió un error inesperado.',
-    )
+    const shouldNotify = shouldShowToast(error.config?.method, error.config?.url)
 
-    useUiStore.getState().notifyError(message)
+    if (shouldNotify) {
+      const message = getErrorMessage(
+        error.response?.data,
+        'Ocurrió un error inesperado.',
+      )
+
+      useUiStore.getState().notifyError(message)
+    }
 
     if (error.response?.status === 401) {
       localStorage.removeItem('inventario-token')

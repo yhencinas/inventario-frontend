@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+import { Pagination } from '../../components/Pagination'
 import { useProductsStore } from '../../store/productsStore'
+import { isNonNegativeNumber } from '../../lib/validation'
 
 const DEFAULT_FORM = {
   sku: '',
@@ -12,25 +14,27 @@ const DEFAULT_FORM = {
 }
 
 export function ProductsPage() {
-  const { products, loading, error, form, setForm, fetchProducts, createProduct, adjustStock, deleteProduct } = useProductsStore()
+  const { products, loading, error, form, page, size, totalPage, totalRecord, setForm, fetchProducts, createProduct, adjustStock, deleteProduct } = useProductsStore()
   const [search, setSearch] = useState('')
   const [lowStockOnly, setLowStockOnly] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    fetchProducts({ search, lowStock: lowStockOnly, page: 0, size: 20 })
+    fetchProducts({ search, lowStock: lowStockOnly, page: 0, size: 20 }).catch(() => undefined)
   }, [fetchProducts, search, lowStockOnly])
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const q = search.toLowerCase().trim()
-      if (!q) return true
-
-      return product.name.toLowerCase().includes(q) || product.sku.toLowerCase().includes(q)
-    })
-  }, [products, search])
+  const filteredProducts = useMemo(() => products, [products])
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    const nextErrors: Record<string, string> = {}
+    if (!form.sku.trim()) nextErrors.sku = 'El SKU es requerido.'
+    if (!form.name.trim()) nextErrors.name = 'El nombre es requerido.'
+    if (!isNonNegativeNumber(form.price)) nextErrors.price = 'Ingresa un precio válido mayor o igual a 0.'
+    if (!isNonNegativeNumber(form.stock)) nextErrors.stock = 'Ingresa un stock válido mayor o igual a 0.'
+    if (!isNonNegativeNumber(form.minimumStock)) nextErrors.minimumStock = 'Ingresa un stock mínimo válido.'
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) return
 
     try {
       await createProduct(form)
@@ -67,9 +71,10 @@ export function ProductsPage() {
               <input
                 value={form.sku}
                 onChange={(event) => setForm({ ...form, sku: event.target.value })}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none focus:ring-2 ${errors.sku ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
                 required
               />
+              {errors.sku ? <p className="mt-1 text-sm text-red-600">{errors.sku}</p> : null}
             </div>
 
             <div>
@@ -77,9 +82,10 @@ export function ProductsPage() {
               <input
                 value={form.name}
                 onChange={(event) => setForm({ ...form, name: event.target.value })}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none focus:ring-2 ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
                 required
               />
+              {errors.name ? <p className="mt-1 text-sm text-red-600">{errors.name}</p> : null}
             </div>
 
             <div>
@@ -100,9 +106,10 @@ export function ProductsPage() {
                   min="0"
                   value={form.price}
                   onChange={(event) => setForm({ ...form, price: event.target.value })}
-                  className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                  className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none focus:ring-2 ${errors.price ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
                   required
                 />
+                {errors.price ? <p className="mt-1 text-sm text-red-600">{errors.price}</p> : null}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Stock</label>
@@ -111,9 +118,10 @@ export function ProductsPage() {
                   min="0"
                   value={form.stock}
                   onChange={(event) => setForm({ ...form, stock: event.target.value })}
-                  className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                  className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none focus:ring-2 ${errors.stock ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
                   required
                 />
+                {errors.stock ? <p className="mt-1 text-sm text-red-600">{errors.stock}</p> : null}
               </div>
             </div>
 
@@ -124,9 +132,10 @@ export function ProductsPage() {
                 min="0"
                 value={form.minimumStock}
                 onChange={(event) => setForm({ ...form, minimumStock: event.target.value })}
-                className="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 outline-none focus:ring-2 ${errors.minimumStock ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-200'}`}
                 required
               />
+              {errors.minimumStock ? <p className="mt-1 text-sm text-red-600">{errors.minimumStock}</p> : null}
             </div>
 
             {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div> : null}
@@ -161,6 +170,7 @@ export function ProductsPage() {
                 Bajo stock
               </label>
             </div>
+            <Pagination page={page} totalPage={totalPage} totalRecord={totalRecord} size={size} onPageChange={(nextPage) => fetchProducts({ search, lowStock: lowStockOnly, page: nextPage, size })} onSizeChange={(nextSize) => fetchProducts({ search, lowStock: lowStockOnly, page: 0, size: nextSize })} />
           </div>
 
           <div className="mt-4 space-y-3">
