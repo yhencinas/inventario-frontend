@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { env } from '../env'
 import { useUiStore } from '../store/uiStore'
 
-export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8082'
+export const API_URL = env.apiUrl
 
 const getErrorMessage = (payload: unknown, fallback: string) => {
   if (payload && typeof payload === 'object' && 'message' in payload) {
